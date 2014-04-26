@@ -10,6 +10,12 @@ import com.ntz.amg.GridNode.NodeType;
 import com.ntz.data_structure.HierarchyGrids;
 import com.ntz.utils.Diagnostic;
 
+/**
+ * This class take the results of the AMG and produce clusters
+ * from two grids (this done only for the 2 first grids for now). 
+ * @author Noam Tzumie
+ *
+ */
 public class Clustering {
 
 	HierarchyGrids hierarchyGrids;
@@ -86,8 +92,14 @@ public class Clustering {
 			FinalClustering.put(entry.getKey()-1, ClustersCoarse.get(entry.getValue()));
 		    //System.out.println(entry.getKey() + ":" + ClustersCoarse.get(entry.getValue()));
 		}
-//		System.out.println();
-//		System.out.println();
+		
+		print(FinalClustering, n);
+		
+		Diagnostic.endClusterWatch();
+		
+	}
+
+	public void print(Map<Integer, String> FinalClustering, GridNode[] n){
 		ArrayList<String> Clusters = new ArrayList<String>();
 		for(String r : FinalClustering.values()){
 			if(Clusters.contains(r))
@@ -100,14 +112,8 @@ public class Clustering {
 					System.out.print((n1.id+1) + " ");
 				}
 		}
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-		Diagnostic.endClusterWatch();
-		
 	}
-
+	
 	public void clusterGrid(Grid grid){
 		
 	}

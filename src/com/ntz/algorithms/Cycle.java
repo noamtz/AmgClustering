@@ -7,7 +7,11 @@ import com.ntz.data_structure.SparseVector;
 import com.ntz.utils.Diagnostic;
 import com.ntz.utils.Utils;
 
-
+/**
+ * This class performs V-Cycle
+ * @author Noam Tzumie
+ *
+ */
 public class Cycle {
 
 	private int numOfCycles = 10; //By default

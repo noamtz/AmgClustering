@@ -10,16 +10,19 @@ public class Application {
 
 	public static void main(String[] args){
 		Diagnostic.startAppWatch();
-
+		
+		//Convert general graph to AHCGraph
 		AHCGraph ahcGraph = AHCGraphGenerator.generateFromFile("resources/r-graph.stp");//generateFromImage("resources/img.txt");
 		
+		//Initialize graph data for AMG
 		Initialize initializer = new Initialize(ahcGraph);
-		
 		initializer.perform();
 		
+		//Perform AMG
 		Cycle vCycle = new Cycle();
 		vCycle.perform();
-
+		
+		//Perform clustering
 		Clustering clustering = new Clustering();
 		clustering.perform();
 		

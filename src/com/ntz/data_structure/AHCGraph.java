@@ -1,10 +1,14 @@
 package com.ntz.data_structure;
 
-import java.util.Iterator;
-
 import com.ntz.utils.Diagnostic;
 import com.ntz.utils.Diagnostic.LogLevel;
 
+/**
+ * AHCGraph is a class that represent an AMG Hierarchical Clustering Graph
+ *  
+ * @author Noam Tzumie
+ *
+ */
 public class AHCGraph {
 	
 	private SparseMatrix S;

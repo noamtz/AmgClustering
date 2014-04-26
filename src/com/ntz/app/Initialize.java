@@ -7,6 +7,11 @@ import com.ntz.data_structure.SparseMatrix;
 import com.ntz.data_structure.SparseVector;
 import com.ntz.utils.Diagnostic;
 
+/**
+ * This initializer prepare the components of AMG algorithm
+ * @author Noam Tzumie
+ *
+ */
 public class Initialize {
 	
 	private AHCGraph ahcGraph;
