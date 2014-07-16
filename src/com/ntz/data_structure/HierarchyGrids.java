@@ -38,6 +38,18 @@ public class HierarchyGrids {
 		return grids.get(level);
 	}
 	
+	public int numOfGrids(){
+		return grids.size();
+	}
+	
+	public int numOfRelevantGrids(){
+		int c = 0;
+		for(Grid g:grids){
+			if(g.nodes.length > 1) c++;
+		}
+		return c;
+	}
+	
 	public boolean assembleHierarchy(){
 		return false;
 	}

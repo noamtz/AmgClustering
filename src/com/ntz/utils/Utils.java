@@ -14,11 +14,10 @@ import java.util.Properties;
 import javax.swing.JFrame;
 
 import com.ntz.data_structure.AHCGraph;
+import com.ntz.data_structure.Edge;
+import com.ntz.data_structure.EdgeWeightedGraph;
 import com.ntz.data_structure.SparseMatrix;
 import com.ntz.data_structure.SparseVector;
-import com.ntz.utils.Diagnostic.LogLevel;
-
-
 
 public class Utils {
 
@@ -279,6 +278,138 @@ public class Utils {
 			}
 		return false;
 	}
+	
+
+public static AHCGraph getGraphFromCSVFile(String path){
+		AHCGraph graph = null;
+		BufferedReader br = null;
+		String line = "";
+		String cvsSplitBy = ",";
+		double max = -1000;
+		try {
+	 
+			br = new BufferedReader(new FileReader(path));
+			int rowNum = 0;
+			boolean isFirst = true;
+			while ((line = br.readLine()) != null) {
+	 
+				String[] row = line.split(cvsSplitBy);
+				if(isFirst){
+					isFirst = false;
+					graph =  new AHCGraph(row.length);
+				}
+				for(int i=0; i<row.length; i++){
+					double weight = Double.parseDouble(row[i].trim());
+					if(weight>max) max = weight;
+					graph.addEdge(rowNum, i, weight != 0? weight :0);
+				}
+				rowNum++;
+			}
+	 
+		} catch (FileNotFoundException e) {
+			System.out.println(path);
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		System.out.println("MAX VAL: " + max);
+		return graph;
+	}
+
+public static AHCGraph getGraphFromImageCSVFile(String path){
+	AHCGraph graph = null;
+	BufferedReader br = null;
+	String line = "";
+	String cvsSplitBy = ",";
+	double max = -1000;
+	try {
+ 
+		br = new BufferedReader(new FileReader(path));
+		int rowNum = 0;
+		boolean isFirst = true;
+		while ((line = br.readLine()) != null) {
+ 
+			String[] row = line.split(cvsSplitBy);
+			if(isFirst){
+				isFirst = false;
+				graph =  new AHCGraph(row.length);
+			}
+			for(int i=0; i<row.length; i++){
+				double weight = Double.parseDouble(row[i].trim());
+				if(weight>max) max = weight;
+				graph.addEdge(rowNum, i, weight != 0? weight :0);
+			}
+			rowNum++;
+		}
+ 
+	} catch (FileNotFoundException e) {
+		System.out.println(path);
+		e.printStackTrace();
+	} catch (IOException e) {
+		e.printStackTrace();
+	} finally {
+		if (br != null) {
+			try {
+				br.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	System.out.println("MAX VAL: " + max);
+	return graph;
+}
+
+public static EdgeWeightedGraph getGraph2FromCSVFile(String path){
+	EdgeWeightedGraph graph = null;
+	BufferedReader br = null;
+	String line = "";
+	String cvsSplitBy = ",";
+ 
+	try {
+ 
+		br = new BufferedReader(new FileReader(path));
+		int rowNum = 0;
+		boolean isFirst = true;
+		while ((line = br.readLine()) != null) {
+ 
+			String[] row = line.split(cvsSplitBy);
+			if(isFirst){
+				isFirst = false;
+				graph =  new EdgeWeightedGraph(row.length);
+			}
+			for(int i=0; i<row.length; i++){
+				double weight = Double.parseDouble(row[i].trim());
+				graph.addEdge(new Edge(rowNum, i, 10-weight));
+			}
+			rowNum++;
+		}
+ 
+	} catch (FileNotFoundException e) {
+		System.out.println(path);
+		e.printStackTrace();
+	} catch (IOException e) {
+		e.printStackTrace();
+	} finally {
+		if (br != null) {
+			try {
+				br.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+//	System.out.println(graph);
+	return graph;
+}
 
 	//IMAGE GRAPH
 
@@ -291,7 +422,8 @@ public class Utils {
 			String line = null;
 			while ((line = br.readLine()) != null) {
 				String split[] = line.split(",");
-				double[] row = new  double[split.length];
+
+				double[] row = new double[split.length];
 				for(int i=0; i<row.length; i++)
 					row[i] = Double.parseDouble(split[i]);
 				A.add(row);
@@ -315,7 +447,7 @@ public class Utils {
 		if(A.size()>0){
 			I = new double[A.size()][A.get(0).length];
 			for(int i=0; i<A.size(); i++){
-				I[i] = A.get(0);
+				I[i] = A.get(i);
 			}
 		}
 		return I;
@@ -336,6 +468,8 @@ public class Utils {
 					I[i][j] = 1;
 				}
 
+				projection(graph,I,row,i,j);//value at point
+				
 				projection(graph,I,row,i,j-1);//left
 				projection(graph,I,row,i,j+1);//right
 				projection(graph,I,row,i-1,j);//up				
@@ -349,22 +483,43 @@ public class Utils {
 			}
 		}
 
-		for(int i=0;i<size;i++){
-			for(int j=0;j<size;j++){
-				if(i!=j){
-					double val = graph.getEdge(i, j);
-					double valSymmetry = graph.getEdge(j, i);
-					if(val!=0 && valSymmetry==0){
-						graph.addEdge(i, j, val/2);
-						graph.addEdge(j,i, val/2);
-					}
-					if(graph.getEdge(i, j) != graph.getEdge(j, i)){
-						graph.addEdge(i, j, graph.getEdge(j, i));
-					}
-				}
+		
+//		for(int i=0;i<size;i++) {
+//			for(int j=0;j<size;j++){
+//				if(i!=j){
+//					double val = graph.getEdge(i, j);
+//					double valSymmetry = graph.getEdge(j, i);
+//					if(val!=0 && valSymmetry==0){
+//						graph.addEdge(i, j, val/2);
+//						graph.addEdge(j,i, val/2);
+//					}
+//					if(graph.getEdge(i, j) != graph.getEdge(j, i)){
+//						graph.addEdge(i, j, graph.getEdge(j, i));
+//					}
+//				}
+//
+//			}
+//		}		
 
+		for(int i=0;i<size;i++){
+			double counter = 0;
+			double val = graph.getEdge(i, i);
+			for(int j=0;j<size;j++){
+				double neighnor = graph.getEdge(i, j);
+				if(i!=j && !(val==0||neighnor==0)){
+					double avg = (neighnor+val)/2;
+//					double similarity = Math.abs(neighnor-val)/avg*Math.abs(neighnor-val);
+					double similarity = 1/(1+Math.abs(neighnor-val));
+					graph.addEdge(i, j, similarity);
+				}
+				
 			}
+			graph.addEdge(i, i, 0);
 		}
+		
+		
+//		System.out.println(graph.getMatrix());
+		
 		for(int i=0;i<size;i++){
 			double counter = 0;
 			for(int j=0;j<size;j++){
@@ -372,14 +527,20 @@ public class Utils {
 			}
 			graph.addEdge(i, i, counter);
 		}
+//		System.out.println(graph.getMatrix());
+		
 		return graph;
+	}
+	
+	public static double sigmoid(double x) {
+	    return (1/( 1 + Math.pow(Math.E,(-1*x))));
 	}
 
 	private static void projection(AHCGraph graph, double[][] I,int row , int i,int j){
 		int gind = i*I[0].length +j;
 
 		if(gind >= 0 && gind < graph.size() && j>=0 && i>=0 && j<I[0].length && i<I.length){
-			graph.addEdge(row,gind,(I[i][j] == 0) ? 1 : I[i][j]);
+			graph.addEdge(row,gind, I[i][j]);
 		}
 	}
 }

@@ -4,7 +4,7 @@ import com.ntz.data_structure.HierarchyGrids;
 
 public class Diagnostic {
 
-	private static boolean DEBUG = false;
+	private static boolean DEBUG = false, log=false;
 
 	private static long cycleTime, appTime, clusteringTime, relaxTime,classifyTime;
 	public static long numOfNodes, numOfCycles;
@@ -84,7 +84,7 @@ public class Diagnostic {
 	}
 
 	public static void log(String msg , LogLevel level) {
-		if(DEBUG){
+		if(DEBUG && log){
 			switch (level) {
 			case INFO:
 				System.out.println(msg);

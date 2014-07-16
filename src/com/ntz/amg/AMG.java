@@ -17,24 +17,91 @@ import com.ntz.utils.Diagnostic.LogLevel;
 
 public class AMG {
 
+	public static final double TH = 0.2;
+
+	private void strongInfluenceCaculation(GridNode[] nodes, SparseMatrix A) {
+		for(GridNode gn : nodes){
+
+			SparseVector neighbors = A.getRow(gn.id);
+			//maximum
+			double max = Double.MIN_VALUE;
+			Iterator<Integer> itr = neighbors.Iterator();
+			while(itr.hasNext()){
+				int i = itr.next();
+				if(i != gn.id){
+					if(max < Math.abs(neighbors.get(i)))
+						max = Math.abs(neighbors.get(i));
+				
+				}
+			}
+
+			itr = neighbors.Iterator();
+			while(itr.hasNext()){
+
+				int j = itr.next();
+//				
+				if(j != gn.id){
+
+					
+					if(Math.abs(neighbors.get(j)) > TH*max) {
+						gn.S.put(j, nodes[j]);
+					} else {
+						if(neighbors.get(j) != 0)
+							gn.St.put(j, nodes[j]);
+					}
+					
+				}
+			}
+//			gn.lamda = gn.S.size();
+			
+		}
+	}
+	
+	/**
+	 * Classify grids points to be C or F
+	 * @param grid
+	 * @return
+	 */
 	public int classifyGrid(Grid grid){
 		GridNode[] nodes = grid.nodes;
 		SparseMatrix A = grid.A;
 		GridNode gn = null;
-		int numOfC = 0;		
+		int numOfC = 0;	
+		
+		strongInfluenceCaculation(nodes, A);
+		
 		while((gn = getMax(nodes)) != null){
-			
 			gn.type = NodeType.C;
 			gn.order = numOfC++;
+
+//			if(gn.id==1)System.out.println(gn.St.keySet());
+//			for(int j : gn.St.keySet()){//Sti
+//				if(j != gn.id && nodes[j].type == NodeType.UNASSIGN){
+//					nodes[j].type = NodeType.F;
+//					nodes[j].lamda = Double.MIN_VALUE;
+//				}
+//			}
+//			
+//
+//			for(int j : gn.St.keySet()){//Sti
+//				if(j != gn.id){
+//					Iterator<Integer> itr2 =  A.getRow(j).Iterator();
+//					while(itr2.hasNext()){
+//						Integer n = itr2.next();
+//						if(j != n && nodes[n].type == NodeType.UNASSIGN)
+//							nodes[n].lamda++;
+//					}
+//				}
+//			}
+
+			
 			SparseVector neighbors = A.getRow(gn.id);
 			Iterator<Integer> itr = neighbors.Iterator();
 			while(itr.hasNext()){
 				Integer i = itr.next();
-				if(i != gn.id){
+				if(i != gn.id && nodes[i].type == NodeType.UNASSIGN){
 					nodes[i].type = NodeType.F;
 					nodes[i].lamda = Double.MIN_VALUE;
-					nodes[i].S.put(gn.id, gn);
-					gn.St.put(i, nodes[i]);
 				}
 			}
 
@@ -43,7 +110,8 @@ public class AMG {
 			while(itr.hasNext()){
 				Integer i = itr.next();
 				if(i != gn.id){
-					Iterator<Integer> itr2 = neighbors.Iterator();
+//					Iterator<Integer> itr2 = neighbors.Iterator();
+					Iterator<Integer> itr2 =  A.getRow(i).Iterator();
 					while(itr2.hasNext()){
 						Integer n = itr2.next();
 						if(i != n && nodes[n].type == NodeType.UNASSIGN)
@@ -52,8 +120,23 @@ public class AMG {
 				}
 			}
 		}
+
 		Diagnostic.log("Before Second Pass Number Of C's: " + numOfC);
 		//Second pass
+		numOfC = secondPass(nodes, A, numOfC);
+		
+		Diagnostic.log("After Second Pass Number Of C's: " + numOfC);
+		return numOfC;
+	}
+
+	/**
+	 * Second pass on the grid to make sure there is no F-F strong connections
+	 * @param nodes
+	 * @param A
+	 * @param numOfC
+	 * @return
+	 */
+	public int secondPass(GridNode[] nodes, SparseMatrix A, int numOfC){
 		for(GridNode sgn : nodes){
 			if(sgn.type != NodeType.C){
 				ArrayList<Integer> Cit = new ArrayList<Integer>();
@@ -61,11 +144,12 @@ public class AMG {
 				SparseVector neighbors = A.getRow(sgn.id);
 				Iterator<Integer> itr = neighbors.Iterator();
 				while(itr.hasNext()){
-					Integer j = itr.next();
+					Integer j= itr.next();
 					if(j != sgn.id && nodes[j].type != NodeType.C) {
-						Set<Integer> keysInJ = new HashSet<Integer>(nodes[j].S.keySet());
-						Set<Integer> keysInI = new HashSet<Integer>(sgn.S.keySet());
-						keysInI.retainAll(keysInJ);
+						Set<Integer> keysInJ = new HashSet<Integer>(nodes[j].St.keySet());
+						Set<Integer> keysInI = new HashSet<Integer>(sgn.St.keySet());
+						
+						boolean isChanged = keysInI.retainAll(keysInJ);
 						if(keysInI.size() == 0){
 							Cit.add(j);
 						}	
@@ -78,13 +162,19 @@ public class AMG {
 				else if(Cit.size() == 1){ 
 					nodes[Cit.get(0)].type = NodeType.C;
 					nodes[Cit.get(0)].order = numOfC++;
+				} else {
+//					System.out.println("EMPTY: " + sgn.id);
 				}
 			}
 		}
-		Diagnostic.log("After Second Pass Number Of C's: " + numOfC);
 		return numOfC;
 	}
-
+	
+	/**
+	 * Retrieve next point in grid with maximum lamda
+	 * @param nodes
+	 * @return
+	 */
 	public GridNode getMax(GridNode[] nodes){
 		double max = Double.MIN_VALUE;
 		GridNode res = null;
@@ -135,17 +225,23 @@ public class AMG {
 		while(itr.hasNext()){
 			int i = itr.next();
 			if(i != gn.id)
-				if(max < -Ni.get(i))
-					max = -Ni.get(i); 
+				if(max < Math.abs(Ni.get(i)))
+					max = Math.abs(Ni.get(i)); 
 		}
 		itr = Ni.Iterator();
+
 		while(itr.hasNext()){
 			int j = itr.next();
-			if(j != gn.id)
-				if(-Ni.get(j) >= 0.2*max){
-					nodes[gn.id].S.put(j, nodes[j]);
-					if(nodes[j].type == NodeType.C) // Coarse interpolary set
+
+			if(j != gn.id){
+
+				
+				if(Math.abs(Ni.get(j)) >= TH*max) {
+					//nodes[gn.id].S.put(j, nodes[j]);
+					if(nodes[j].type == NodeType.C){ // Coarse interpolary set
 						gn.Ci.put(j, nodes[j]);
+						
+					}
 					else {// F Points strongly connected
 						gn.Dis.put(j, nodes[j]);
 					}
@@ -153,7 +249,9 @@ public class AMG {
 				else{ // F/C Points weakly connected 
 					gn.Diw.put(j, nodes[j]);
 				}
-			gn.Dependence.put(j,-Ni.get(j));
+			}
+
+			gn.Dependence.put(j,Math.abs(Ni.get(j)));
 		}
 	}
 

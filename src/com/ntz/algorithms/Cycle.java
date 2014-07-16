@@ -64,6 +64,7 @@ public class Cycle {
 			hierarchyGrids.addGrid(mGrid2);
 
 		}
+		
 		for(int i=hierarchyGrids.size()-2; i>=0; i--) {
 			Grid mGrid = hierarchyGrids.getGrid(i);
 			mGrid.v = mGrid.v.plus(mGrid.interpolate(hierarchyGrids.getGrid(i+1).v));//correction

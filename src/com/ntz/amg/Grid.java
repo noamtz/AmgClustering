@@ -35,6 +35,14 @@ public class Grid {
 		return true;
 	}
 	
+	public int numOfC(){
+		int res = 0;
+		for(GridNode g : nodes){
+			if(g.type == NodeType.C) res++;
+		}
+		return res;
+	}
+	
 	public SparseVector restrict(SparseVector v){
 		return Restriction.times(v);
 	}
