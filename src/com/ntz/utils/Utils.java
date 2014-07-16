@@ -13,6 +13,7 @@ import java.util.Properties;
 
 import javax.swing.JFrame;
 
+
 import com.ntz.data_structure.AHCGraph;
 import com.ntz.data_structure.Edge;
 import com.ntz.data_structure.EdgeWeightedGraph;
@@ -186,7 +187,7 @@ public class Utils {
 
 					int numOfnodes = Integer.parseInt(br.readLine().trim().split(" ")[1]);
 					graph =  new AHCGraph(numOfnodes);
-
+						
 					int numOfEdges = Integer.parseInt(br.readLine().trim().split(" ")[1]);
 					while (!end && (line = br.readLine()) != null) {
 						if(line.contains("END"))
